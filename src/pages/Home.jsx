@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { FaHotel, FaDumbbell, FaGlobeAsia, FaCocktail, FaSpa, FaAngleLeft, FaAngleRight } from "react-icons/fa"
 import { FaBasketShopping } from "react-icons/fa6"
 import ExploreCity from "../components/ExploreCity";
-import SearchResults from "./SearchResults";
+import backgroundImage from '../assets/meta.jpg';
 
 
 export default function Home() {
@@ -46,10 +46,16 @@ export default function Home() {
 
 
   return (
-    <div className="h-full w-full flex flex-col justify-between bg-cover bg-center" style={{
-      backgroundImage: 'url(https://cdnb.artstation.com/p/assets/covers/images/035/208/137/large/ideun-kim-ideun-kim-commerce-detail-planet03-a.jpg?1614363356)'
-    }}
-    >
+    // <div className="h-full w-full flex flex-col justify-between bg-cover bg-center" style={{
+    //   backgroundImage: 'url(https://cdnb.artstation.com/p/assets/covers/images/035/208/137/large/ideun-kim-ideun-kim-commerce-detail-planet03-a.jpg?1614363356)'
+    // }}
+    // >
+    <div
+        className="h-full w-full flex flex-col justify-between bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${backgroundImage})`,
+        }}
+      >
       <ExploreCity />
 
       {/* <div className="absolute left-1/2 h-30 transform -translate-x-1/2 -translate-y-1/2 z-10 bg-white rounded shadow-lg flex gap-8 items-center justify-center"> */}

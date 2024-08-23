@@ -35,14 +35,14 @@ export default function Navbar() {
       </div>
 
       <div
-        className="bg-grey text-gray-100 shadow-md bg-gray-400 p-2"
+        // className="bg-grey text-gray-100 shadow-md bg-gray-400 p-2"
       >
         <div className="container mx-auto flex justify-between items-center">
           {/* Brand */}
           <div className="text-xl font-bold">
             <Link to="/">
               <img src="https://metasourcesolutions.com/wp-content/themes/ziston/images/logo-mobile.png"
-                alt="Metasource Solutions" className="h-12 w-25 object-fill" />
+                alt="Metasource Solutions" className="h-12 w-25 object-fill" style={{margin:10}}/>
             </Link>
           </div>
 
@@ -96,7 +96,7 @@ export default function Navbar() {
           </div>
 
           {/* Add Listing Button */}
-          <button className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+          <button className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600" style={{marginRight:5}}>
             + ADD LISTINGS
           </button>
         </div>

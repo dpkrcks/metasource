@@ -1,38 +1,11 @@
-// import React from 'react';
-// import '../css/ExploreCity.css';
-
-// function ExploreCity() {
-//   return (
-//     <div className="explore-container">
-//       <div className="overlay">
-//         <h1>Let's Explore</h1>
-//         <h2>Your Amazing City</h2>
-//         {/* <p>Find great places to stay, eat, shop, or visit from local experts.</p> */}
-//         <div className="search-bar">
-//           <select className="category-select">
-//             <option>All Categories</option>
-//             <option>Category 1</option>
-//             <option>Category 2</option>
-//             <option>Category 3</option>
-//           </select>
-//           <input type="text" placeholder="Location" className="location-input" />
-//           <button className="search-button">Search</button>
-//         </div>
-//         <p className="browse-categories">Or browse the selected categories</p>
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default ExploreCity;
-
-// src/TraderzPlanet.js
-
 import React, { useState } from 'react';
-import { Container, TextInput, Select, Button, Text, Box, Image } from '@mantine/core';
+import { Container, TextInput, Select, Button, Text, Box, Notification } from '@mantine/core';
 import { FaSearch } from 'react-icons/fa';
 import AsyncSelect from 'react-select/async';
 import { useNavigate } from 'react-router-dom';
+import LoadingOverlayComponent from './LoadingOverlayComponent';
+import { apiConstants, client } from '../API/client';
+import { MdError } from 'react-icons/md';
 
 
 // Dummy data
@@ -48,16 +21,6 @@ const dummyData = [
 ];
 
 // Simulate an async data fetch
-const fetchData = (inputValue) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const filteredData = dummyData.filter(item =>
-        item.label.toLowerCase().includes(inputValue.toLowerCase())
-      );
-      resolve(filteredData);
-    }, 2000); // Simulate a delay
-  });
-};
 
 const customStyles = {
   container: (provided) => ({
@@ -116,12 +79,63 @@ const customStyles = {
 function ExploreCity() {
   const [search, setSearch] = useState(null);
   const [city, setCity] = useState(null);
+  const [inputValue, setInputValue] = useState('');
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({ show: false, title: '', message: '', color: '', icon: null });
 
+
+  const toggleLoading = () => {
+    setLoading((prevLoading) => !prevLoading);
+  };
   const loadOptions = (inputValue, callback) => {
-    fetchData(inputValue).then(options => {
-      callback(options);
-    });
+    toggleLoading()
+    client.get(apiConstants.CATEGORIES + inputValue)
+      .then((response) => {
+        toggleLoading()
+        const options = response.data.map(item => ({
+          value: item.value,
+          label: item.label
+        }));
+        callback(options); // Pass the options to the callback to display them in the dropdown
+      })
+      .catch((error) => {
+        toggleLoading()
+        console.error('Error fetching data:', error);
+        callback([]);
+        setNotification({
+          show: true,
+          title: 'Error',
+          message: error.message,
+          color: 'red',
+          icon: <MdError />
+        });
+      });
+  };
+
+  const loadOptionsCity = (inputValue, callback) => {
+    toggleLoading()
+    client.get(apiConstants.STATE + inputValue)
+      .then((response) => {
+        toggleLoading()
+        const options = response.data.map(item => ({
+          value: item.value,
+          label: item.label
+        }));
+        callback(options); // Pass the options to the callback to display them in the dropdown
+      })
+      .catch((error) => {
+        toggleLoading()
+        console.error('Error fetching data:', error);
+        callback([]);
+        setNotification({
+          show: true,
+          title: 'Error',
+          message: error.message,
+          color: 'red',
+          icon: <MdError />
+        });
+      });
   };
 
   const handleSearchChange = (selectedOption) => {
@@ -132,10 +146,17 @@ function ExploreCity() {
   };
 
   const searchHandler = () => {
-    // api call;
     // redirect  to results;
-    navigate("/search", { state: { id: 1 } });
+    navigate("/search", { state: { search, city } });
+
+    // navigate("/search", { state: { search: search,city:city } });
   }
+
+  const handleInputChange = (newValue) => {
+    const inputValue = newValue.replace(/\W/g, ''); // Example of processing input
+    setInputValue(inputValue);
+    return inputValue;
+  };
 
   return (
     <Box
@@ -147,10 +168,29 @@ function ExploreCity() {
         padding: '10px',
       }}
     >
+      <LoadingOverlayComponent visible={loading} />
+      {notification.show && (
+        <div style={{
+          position: 'fixed',
+          top: '10px',
+          right: '10px',
+          zIndex: 1000
+        }}>
+          <Notification
+            color={notification.color}
+            icon={notification.icon}
+            onClose={() => setNotification({ show: false, title: '', message: '', color: '', icon: null })}
+          >
+            <strong>{notification.title}</strong>
+            <br />
+            {notification.message}
+          </Notification>
+        </div>
+      )
+      }
       <Container className=''>
-        {/* <Image src="/logo.png" alt="Traderz Planet Logo" width={150} /> */}
-        <Text size="xl" weight={'bold'} className='mt-[10px] text-red-500 text-center'>
-          Worldwide Digital Phone Directory
+        <Text size="xl" weight={'bold'} className='mt-[10px] text-white text-center'>
+          Let’s Explore YOUR AMAZING CITY
         </Text>
 
         <Box
@@ -167,12 +207,13 @@ function ExploreCity() {
             onChange={handleSearchChange}
             value={search}
             placeholder="Search..."
+            onInputChange={handleInputChange}
             styles={customStyles}
           />
-          <div className="w-60">
+          <div className="w-96">
             <AsyncSelect
               cacheOptions
-              loadOptions={loadOptions}
+              loadOptions={loadOptionsCity}
               onChange={handleCityChange}
               value={city}
               placeholder="City"
@@ -190,7 +231,7 @@ function ExploreCity() {
             style={{ marginRight: '10px' }}
             size="md"
           /> */}
-          <Button onClick={searchHandler} disabled={!search || !city} color="yellow" size="md" className='min-w-max' leftIcon={<FaSearch size={16} />}>
+          <Button onClick={searchHandler} disabled={!search || !city} color="yellow" size="md" className='min-w-max' leftSection={<FaSearch size={16} />}>
             Search
           </Button>
         </Box>
@@ -199,7 +240,7 @@ function ExploreCity() {
           <strong>Note:</strong> Search by entering text like Spa Centers, AC Repairing, Hospitals, Hotels, etc.
         </Text> */}
       </Container>
-    </Box>
+    </Box >
   );
 }
 

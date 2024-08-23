@@ -1,64 +1,115 @@
-import React, { useEffect } from 'react';
-import { Container, Button, Text, Box, Grid, Card, Badge, Group } from '@mantine/core';
+import React, { useEffect, useState } from 'react';
+import { Container, Button, Text, Box, Grid, Card, Badge, Group, Notification } from '@mantine/core';
 import { FaUserPlus } from 'react-icons/fa';
 import { useLocation } from 'react-router-dom';
-
-// Sample data
-const hotels = [
-  { name: 'Hotel Campus', owner_name: 'Kalpit Patel', pin_code: '380015', reviews: 40, badgeColor: 'purple' },
-  { name: 'Hotel Mukund Inn', owner_name: 'Mohan', pin_code: '380015', reviews: 49, badgeColor: 'green' },
-  { name: 'Airport Resiency', owner_name: 'Siddharth Shukla', pin_code: '380001', reviews: 42, badgeColor: 'orange' },
-  { name: 'Jakin Corporation', owner_name: 'Mr. Jakin Shah', pin_code: '382405', reviews: 18, badgeColor: 'gray' },
-  { name: 'Hotel Campus', owner_name: 'Kalpit Patel', pin_code: '380015', reviews: 40, badgeColor: 'purple' },
-  { name: 'Hotel Mukund Inn', owner_name: 'Mohan', pin_code: '380015', reviews: 49, badgeColor: 'green' },
-  { name: 'Airport Resiency', owner_name: 'Siddharth Shukla', pin_code: '380001', reviews: 42, badgeColor: 'orange' },
-  { name: 'Jakin Corporation', owner_name: 'Mr. Jakin Shah', pin_code: '382405', reviews: 18, badgeColor: 'gray' },
-];
+import { apiConstants, client } from '../API/client';
+import LoadingOverlayComponent from '../components/LoadingOverlayComponent';
+import { MdError } from 'react-icons/md';
+import backgroundImage from '../assets/meta.jpg';
 
 function SearchResults() {
   const location = useLocation();
-  const { id } = location.state || {};
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState([])
+  const [notification, setNotification] = useState({ show: false, title: '', message: '', color: '', icon: null });
+
+  const toggleLoading = (val) => {
+    setLoading(val);
+  };
+  const { search, city } = location.state || {};
+  const searchValue = search?.value;
+  const cityValue = city?.value;
+
+  let params = {
+    "stateName": cityValue,
+    "smallCategory": searchValue
+  }
   useEffect(() => {
-    console.log({ id })
-    // api call with this id get the results
-  }, [id])
+    toggleLoading(true)
+    client.post(apiConstants.DETAILS + '1&pageSize=20', params)
+      .then((response) => {
+        toggleLoading(false)
+        setData(response.data)
+      })
+      .catch((error) => {
+        toggleLoading(false)
+        setNotification({
+          show: true,
+          title: 'Error',
+          message: error.message,
+          color: 'red',
+          icon: <MdError />
+        });
+        console.error('Error fetching data:', error);
+      });
+
+  }, [search])
   return (
-    <div className="h-full w-full bg-cover bg-center overflow-auto" style={{
-      backgroundImage: 'url(https://cdnb.artstation.com/p/assets/covers/images/035/208/137/large/ideun-kim-ideun-kim-commerce-detail-planet03-a.jpg?1614363356)'
+    // <div
+    //   className="h-full w-full flex flex-col justify-between bg-cover bg-center"
+    //   style={{
+    //     backgroundImage: `url(${backgroundImage})`,
+    //   }}
+    // >
+    <div
+    className="min-h-screen w-full flex flex-col justify-between bg-cover bg-center"
+    style={{
+      backgroundImage: `url(${backgroundImage})`,
+      backgroundAttachment: 'fixed',
     }}
-    >
-    <Container>
-      {/* Hotel List */}
-      <Grid gutter="lg" style={{ marginTop: '20px' }}>
-        {hotels.map((hotel, index) => (
-          <Grid.Col span={6} key={index}>
-            <Card shadow="sm" padding="lg">
-              <Group position="apart" style={{ marginBottom: 5 }}>
-                <Text weight={500}>{hotel.name}</Text>
-                <Badge color={hotel.badgeColor} variant="filled">
-                  {hotel.name.charAt(0)}
-                </Badge>
-              </Group>
+  >
+      <LoadingOverlayComponent visible={loading} />
+      {notification.show && (
+        <div style={{
+          position: 'fixed',
+          top: '10px',
+          right: '10px',
+          zIndex: 1000
+        }}>
+          <Notification
+            color={notification.color}
+            icon={notification.icon}
+            onClose={() => setNotification({ show: false, title: '', message: '', color: '', icon: null })}
+          >
+            <strong>{notification.title}</strong>
+            <br />
+            {notification.message}
+          </Notification>
+        </div>
+      )
+      }
 
-              <Text size="sm" style={{ lineHeight: 1.5 }}>
-                <strong>Owner Name:</strong> {hotel.owner_name}
-                <br />
-                <strong>Pin Code:</strong> {hotel.pin_code}
-              </Text>
+      <Container mt={'md'} mb={'md'}>
+        <Grid gutter="lg" style={{ marginTop: '20px' }}>
+          {data.map((hotel, index) => (
+            <Grid.Col span={6} key={index}>
+              <Card shadow="sm" padding="lg">
+                <Group position="apart" style={{ marginBottom: 5 }}>
+                  <Text weight={500}>{hotel.companyName}</Text>
+                  <Badge color={hotel.badgeColor} variant="filled">
+                    {hotel.companyName.charAt(0)}
+                  </Badge>
+                </Group>
 
-              <Group position="apart" style={{ marginTop: 15 }}>
-                <Text size="sm">
-                  <span role="img" aria-label="stars">⭐</span> ({hotel.reviews} reviews)
+                <Text size="sm" style={{ lineHeight: 1.5 }}>
+                  <strong>Owner Name:</strong> {hotel.ownerName}
+                  <br />
+                  <strong>Pin Code:</strong> {hotel.pincode}
                 </Text>
-                <Button variant="light" color="yellow" radius="xl" size="sm" leftIcon={<FaUserPlus />}>
-                  ADD TO LIST
-                </Button>
-              </Group>
-            </Card>
-          </Grid.Col>
-        ))}
-      </Grid>
-    </Container>
+
+                <Group position="apart" style={{ marginTop: 15 }}>
+                  <Text size="sm">
+                    <span role="img" aria-label="stars">⭐</span> ({hotel.reviews} reviews)
+                  </Text>
+                  <Button variant="light" color="yellow" radius="xl" size="sm" leftSection={<FaUserPlus />}>
+                    ADD TO LIST
+                  </Button>
+                </Group>
+              </Card>
+            </Grid.Col>
+          ))}
+        </Grid>
+      </Container>
     </div>
   );
 }

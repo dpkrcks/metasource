@@ -3,6 +3,9 @@ import Layout from "../components/Layout";
 import Home from "../pages/Home";
 import Privacy from "../pages/Privacy";
 import SearchResults from "../pages/SearchResults";
+import ContactPage from "../pages/ContactPage";
+import AboutUs from "../pages/AboutUs";
+import HowItWorksPage from "../pages/HowItWorksPage";
 
 export const appRoutes = createBrowserRouter([
     {
@@ -18,8 +21,20 @@ export const appRoutes = createBrowserRouter([
                 element: <SearchResults />,
             },
             {
+                path: "about",
+                element: <AboutUs />,
+            },
+            {
                 path: "privacy",
                 element: <Privacy />,
+            },
+            {
+                path: "contact",
+                element: <ContactPage/>,
+            },
+            {
+                path: "how-it-works",
+                element: <HowItWorksPage/>,
             },
             {
                 path: "*",
